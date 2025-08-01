@@ -1,0 +1,45 @@
+{% extends "admin/change_list.html" %}
+
+{% block content %}
+  <div style="text-align: center; margin-bottom: 20px;">
+    <a href="upload-file/" class="button addlink action-btn">📤 Upload File</a>
+    <a href="retry-failed/" class="button action-btn">🔁 Retry Failed</a>
+    <a href="generate-file/" class="button action-btn">📄 Generate File</a>
+  </div>
+  {{ block.super }}
+{% endblock %}
+
+{% block extrahead %}
+  {{ block.super }}
+  <style>
+    .action-btn {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 5px 10px;
+      display: inline-block;
+      min-width: 180px;
+    }
+  </style>
+  <script>
+    (function(){
+      const params = new URLSearchParams(window.location.search);
+      const taskId = params.get('task_id');
+      if (!taskId) return;
+
+      function check() {
+        fetch("/admin/parser/shop/task-status/?task_id=" + taskId)
+          .then(r => r.json())
+          .then(data => {
+            if (data.state === 'SUCCESS' || data.state === 'FAILURE') {
+              window.location.href = "{% url 'admin:parser_shop_changelist' %}";
+            } else {
+              setTimeout(check, 2000);
+            }
+          })
+          .catch(() => setTimeout(check, 5000));
+      }
+
+      check();
+    })();
+  </script>
+{% endblock %}

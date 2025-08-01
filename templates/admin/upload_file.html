@@ -1,0 +1,169 @@
+{% extends "admin/base_site.html" %}
+{% load static %}
+
+{% block title %}Upload File{% endblock %}
+
+{% block content %}
+<style>
+  .upload-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: calc(100vh - 120px); /* leave room for admin header */
+  }
+
+  .upload-container {
+    background-color: var(--body-bg);
+    border: 1px dashed var(--border-color, #999);
+    padding: 40px;
+    border-radius: 12px;
+    text-align: center;
+    max-width: 500px;
+    width: 100%;
+    font-size: 1.1rem;
+  }
+
+  .upload-container h1 {
+    font-size: 1.6rem;
+    margin-bottom: 1.5rem;
+  }
+
+  #drop-zone {
+    padding: 30px;
+    border: 2px dashed var(--border-color, #888);
+    border-radius: 10px;
+    background-color: var(--darkened-bg, #f9f9f9);
+    margin-bottom: 1.5rem;
+    transition: background 0.3s ease;
+    cursor: pointer;
+  }
+
+  #drop-zone.dragover {
+    background-color: rgba(100, 100, 255, 0.1);
+  }
+
+  #file-name {
+    margin-top: 10px;
+    font-style: italic;
+    font-size: 0.95rem;
+    color: var(--body-quiet-color);
+  }
+
+  input[type="file"] {
+    display: none;
+  }
+
+  .submit-row {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 20px;
+  }
+
+  .submit-row button,
+  .submit-row a.button {
+    padding: 10px 22px;
+    font-size: 1rem;
+    border: none;
+    border-radius: 4px;
+    color: #fff;
+    text-decoration: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+  }
+
+  .upload-btn {
+    background-color: #0c63e4; /* Bootstrap blue */
+  }
+
+  .upload-btn:hover {
+    background-color: #0952c1;
+  }
+
+  .reset-btn {
+    background-color: #d6a600; /* менее насыщенный жёлтый */
+    color: #000;
+  }
+
+  .reset-btn:hover {
+    background-color: #b58c00;
+  }
+
+  .cancel-btn {
+    background-color: #6c757d; /* Bootstrap gray */
+    color: #fff !important;
+  }
+
+  .cancel-btn:hover {
+    background-color: #5c636a;
+  }
+</style>
+
+<div class="upload-wrapper">
+  <div class="upload-container">
+    <h1>📤 Upload Your .txt File</h1>
+    <form method="POST" enctype="multipart/form-data">
+      {% csrf_token %}
+
+      <div id="drop-zone">
+        Drop your .txt file here or click to browse
+        <div id="file-name">No file selected</div>
+      </div>
+      {{ form.file }}
+
+      <div class="submit-row">
+        <button type="submit" class="upload-btn">Upload</button>
+        <button type="button" id="reset-btn" class="reset-btn">Reset</button>
+        <a href="{% url 'admin:index' %}" class="button cancel-btn">Cancel</a>
+      </div>
+    </form>
+  </div>
+</div>
+
+<script>
+  const dropZone = document.getElementById("drop-zone");
+  const fileInput = document.getElementById("id_file");
+  const fileNameDisplay = document.getElementById("file-name");
+  const resetBtn = document.getElementById("reset-btn");
+
+  dropZone.addEventListener("click", () => fileInput.click());
+
+  fileInput.addEventListener("change", () => {
+    if (fileInput.files.length > 0) {
+      fileNameDisplay.textContent = fileInput.files[0].name;
+    } else {
+      fileNameDisplay.textContent = "No file selected";
+    }
+  });
+
+  ["dragenter", "dragover"].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.add("dragover");
+    });
+  });
+
+  ["dragleave", "drop"].forEach(eventName => {
+    dropZone.addEventListener(eventName, (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      dropZone.classList.remove("dragover");
+    });
+  });
+
+  dropZone.addEventListener("drop", (e) => {
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      fileInput.files = files;
+      fileNameDisplay.textContent = files[0].name;
+    }
+  });
+
+   resetBtn.addEventListener("click", () => {
+    fileInput.value = "";
+    fileNameDisplay.textContent = "No file selected";
+  });
+</script>
+{% endblock %}
+
