@@ -1,0 +1,11 @@
+README.MD
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pyc
+.venv/
+.idea/
+.git/
+.gitignore
+shops_example.txt
