@@ -1,11 +1,18 @@
-import asyncio
-
 import httpx
-from typing import List, Tuple
+from typing import List
 
 TARGET_SUM = 200.0
 CONCURRENCY = 3
 TIMEOUT = 10.0
+DEFAULT_HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/115.0.0.0 Safari/537.36"
+    ),
+    "Accept": "application/json, text/javascript, */*; q=0.01",
+    "X-Requested-With": "XMLHttpRequest",
+}
 
 
 class ShopifyParser:
@@ -18,13 +25,15 @@ class ShopifyParser:
         variants = []
         url = f"{self.shop_url}/products.json"
         try:
-            resp = await client.get(url, params={"limit": 250, "page": 1}, timeout=TIMEOUT)
+            resp = await client.get(
+                url,
+                params={"limit": 250, "page": 1},
+                headers=DEFAULT_HEADERS,
+                timeout=TIMEOUT
+            )
             resp.raise_for_status()
         except httpx.HTTPStatusError as exc:
-            message = f"Error fetching catalog | {exc.response.status_code}"
-            if exc.response.text:
-                message += f" | {exc.response.text:}"
-            self.error_message = message
+            self.error_message = f"Error fetching catalog | {exc.response.status_code}"
             return []
         except httpx.RequestError as exc:
             self.error_message = (

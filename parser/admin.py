@@ -1,3 +1,5 @@
+import re
+
 from django.contrib import admin, messages
 from django.http import HttpRequest, HttpResponseRedirect, HttpResponse
 from django.urls import path, reverse
@@ -28,9 +30,17 @@ class ShopAdmin(admin.ModelAdmin):
         if request.method == "POST":
             form = UploadFileForm(request.POST, request.FILES)
             if form.is_valid():
-                data = form.cleaned_data['file'].read().decode('utf-8').splitlines()
+                raw_lines = form.cleaned_data['file'].read().decode('utf-8').splitlines()
 
-                result = parse_and_save.apply_async(args=[data])
+                cleaned_lines = []
+                for line in raw_lines:
+                    no_ctrl = re.sub(r'[\r\n\t]+', '', line)
+                    printable = re.sub(r'[^\x20-\x7E]', '', no_ctrl)
+                    stripped = printable.strip()
+                    if stripped:
+                        cleaned_lines.append(stripped)
+
+                result = parse_and_save.apply_async(args=[cleaned_lines])
                 changelist_url = reverse("admin:parser_shop_changelist")
                 redirect_url = f"{changelist_url}?task_id={result.id}"
                 messages.info(request, "Please wait, we are generating carts…")
