@@ -11,6 +11,7 @@ services:
       - .env
     depends_on:
       - db
+    restart: unless-stopped
 
   db:
     image: postgres:16-alpine
@@ -24,11 +25,13 @@ services:
       - postgres_data:/var/lib/postgresql/data/
     ports:
       - "5432:5432"
+    restart: unless-stopped
 
   redis:
     image: redis
     ports:
       - 6379:6379
+    restart: unless-stopped
 
   celery:
     build:
@@ -42,6 +45,7 @@ services:
       - db
     env_file:
       - .env
+    restart: unless-stopped
 
 volumes:
   postgres_data:
